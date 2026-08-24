@@ -25,6 +25,9 @@ services:
     # it at our .toml file explicitly.
     command: ['--config', '/etc/vector/vector.toml']
     env_file: .env
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./vector.toml:/etc/vector/vector.toml:ro
