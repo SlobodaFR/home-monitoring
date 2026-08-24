@@ -5,11 +5,10 @@ DEPLOY_DIR="${DEPLOY_DIR:-/opt/monitoring}"
 
 cd "$DEPLOY_DIR"
 
-# Regenerate Dozzle's users.yml from the credentials in .env (written by the
-# CI job from 1Password). Never committed; bcrypt-hashed by `dozzle generate`.
-set -a
-. "$DEPLOY_DIR/.env"
-set +a
+# Regenerate Dozzle's users.yml from MONITORING_DOZZLE_USERNAME/PASSWORD,
+# passed in directly as shell env by the CI SSH step (not read back from
+# .env - sourcing that file as shell breaks the moment a secret contains a
+# shell-special character). Never committed; bcrypt-hashed by `dozzle generate`.
 mkdir -p "$DEPLOY_DIR/data/dozzle"
 docker run --rm amir20/dozzle generate "$MONITORING_DOZZLE_USERNAME" \
   --password "$MONITORING_DOZZLE_PASSWORD" \

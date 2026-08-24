@@ -85,6 +85,7 @@ jobs:
           host: ${{ env.VPS_HOST }}
           username: ${{ env.VPS_USER }}
           key: ${{ env.VPS_SSH_KEY }}
+          envs: MONITORING_DOZZLE_USERNAME,MONITORING_DOZZLE_PASSWORD
           script: |
             chmod +x /opt/monitoring/deploy/scripts/update-vps.sh
             sh /opt/monitoring/deploy/scripts/update-vps.sh
