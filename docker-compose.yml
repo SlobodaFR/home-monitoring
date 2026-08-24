@@ -26,6 +26,10 @@ services:
     command: ['--config', '/etc/vector/vector.toml']
     env_file: .env
     environment:
+      # Env-var interpolation (${MINIO_BUCKET} etc. in vector.toml) is
+      # disabled by default since Vector 0.4x; must opt in explicitly or
+      # every ${VAR} in the config is passed through as a literal string.
+      VECTOR_DANGEROUSLY_ALLOW_ENV_VAR_INTERPOLATION: 'true'
       # TEMP: surface the real error behind the generic "dispatch failure"
       # wrapper. Drop back to default (unset) once the sink is confirmed
       # working.
