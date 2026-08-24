@@ -1,0 +1,27 @@
+name: home-monitoring
+
+services:
+  dozzle:
+    image: amir20/dozzle:latest
+    restart: unless-stopped
+    environment:
+      DOZZLE_AUTH_PROVIDER: simple
+      # Enables Dozzle's built-in MCP server (Streamable HTTP) at /api/mcp.
+      # See https://dozzle.dev/guide/mcp
+      DOZZLE_ENABLE_MCP: 'true'
+    ports:
+      # Internal only. Publicly reachable via the reverse proxy (see deploy/Caddyfile).
+      - '127.0.0.1:3008:8080'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # users.yml is generated at deploy time (see deploy/scripts/update-vps.sh)
+      # from MONITORING_DOZZLE_USERNAME / MONITORING_DOZZLE_PASSWORD. Never committed.
+      - ./data/dozzle:/data
+
+  vector:
+    image: timberio/vector:latest-alpine
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./vector.toml:/etc/vector/vector.toml:ro

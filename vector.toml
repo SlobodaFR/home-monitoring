@@ -1,0 +1,38 @@
+# Vector pipeline: Docker container logs -> MinIO (S3-compatible), gzip JSON.
+# Docs: https://vector.dev/docs/reference/configuration/sources/docker_logs/
+#       https://vector.dev/docs/reference/configuration/sinks/aws_s3/
+
+[api]
+enabled = false
+
+[sources.docker_logs]
+type = "docker_logs"
+
+# Batches into JSON-lines-gzip objects and uploads to the shared home-lab
+# MinIO bucket (same bucket/creds the other home-* repos already use).
+# Flushes on whichever limit is hit first: 5 minutes or 10 MB.
+[sinks.minio]
+type = "aws_s3"
+inputs = ["docker_logs"]
+bucket = "${MINIO_BUCKET}"
+region = "${MINIO_REGION}"
+endpoint = "${MINIO_ENDPOINT}"
+# MinIO (and most S3-compatible stores) need path-style addressing rather
+# than virtual-hosted-style (bucket.endpoint.tld).
+force_path_style = true
+compression = "gzip"
+# Namespaced under logs/ so this doesn't collide with other apps' objects
+# in the shared bucket. One object per host per day:
+# <bucket>/logs/<host>/<YYYY-MM-DD>/<uuid>.log.gz
+key_prefix = "logs/{{ host }}/%F/"
+
+[sinks.minio.auth]
+access_key_id = "${MINIO_ACCESS_KEY_ID}"
+secret_access_key = "${MINIO_SECRET_ACCESS_KEY}"
+
+[sinks.minio.encoding]
+codec = "json"
+
+[sinks.minio.batch]
+max_bytes = 10_485_760 # 10 MB
+timeout_secs = 300 # 5 minutes

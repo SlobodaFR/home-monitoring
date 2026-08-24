@@ -1,0 +1,90 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Load secrets from 1Password
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          VPS_HOST: op://TECH/thomassloboda_home_secrets/VPS_HOST
+          VPS_USER: op://TECH/thomassloboda_home_secrets/VPS_USER
+          VPS_SSH_KEY: op://TECH/thomassloboda_home_secrets/VPS_PRIVATE_KEY
+          MONITORING_DOZZLE_USERNAME: op://TECH/thomassloboda_home_secrets/MONITORING_DOZZLE_USERNAME
+          MONITORING_DOZZLE_PASSWORD: op://TECH/thomassloboda_home_secrets/MONITORING_DOZZLE_PASSWORD
+          # Shared MinIO creds/endpoint, same op:// fields home-auth/home-budget/home-health use.
+          MINIO_ENDPOINT: op://TECH/thomassloboda_home_secrets/MINIO_ENDPOINT
+          MINIO_BUCKET: op://TECH/thomassloboda_home_secrets/MINIO_BUCKET
+          MINIO_REGION: op://TECH/thomassloboda_home_secrets/MINIO_REGION
+          MINIO_ACCESS_KEY_ID: op://TECH/thomassloboda_home_secrets/MINIO_ACCESS_KEY_ID
+          MINIO_SECRET_ACCESS_KEY: op://TECH/thomassloboda_home_secrets/MINIO_SECRET_ACCESS_KEY
+
+      - name: Normalize VPS_SSH_KEY
+        # The 1Password field stores only the base64 body (no BEGIN/END
+        # markers, possibly with stray spaces from line-wrap collapsing).
+        # Strip spaces (base64 never contains any) and wrap with markers.
+        run: |
+          {
+            echo "VPS_SSH_KEY<<EOF_SSH_KEY"
+            echo "-----BEGIN OPENSSH PRIVATE KEY-----"
+            printf '%s' "$VPS_SSH_KEY" | tr -d ' '
+            echo
+            echo "-----END OPENSSH PRIVATE KEY-----"
+            echo "EOF_SSH_KEY"
+          } >> "$GITHUB_ENV"
+
+          {
+            printf '%s' "$VPS_SSH_KEY" | tr -d ' '
+          } > /tmp/key_body
+          echo "::add-mask::$(cat /tmp/key_body)"
+          rm -f /tmp/key_body
+
+      - name: Write remote .env file
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ env.VPS_HOST }}
+          username: ${{ env.VPS_USER }}
+          key: ${{ env.VPS_SSH_KEY }}
+          envs: MONITORING_DOZZLE_USERNAME,MONITORING_DOZZLE_PASSWORD,MINIO_ENDPOINT,MINIO_BUCKET,MINIO_REGION,MINIO_ACCESS_KEY_ID,MINIO_SECRET_ACCESS_KEY
+          script: |
+            mkdir -p /opt/monitoring
+            cat > /opt/monitoring/.env <<EOF
+            MONITORING_DOZZLE_USERNAME=$MONITORING_DOZZLE_USERNAME
+            MONITORING_DOZZLE_PASSWORD=$MONITORING_DOZZLE_PASSWORD
+            MINIO_ENDPOINT=$MINIO_ENDPOINT
+            MINIO_BUCKET=$MINIO_BUCKET
+            MINIO_REGION=$MINIO_REGION
+            MINIO_ACCESS_KEY_ID=$MINIO_ACCESS_KEY_ID
+            MINIO_SECRET_ACCESS_KEY=$MINIO_SECRET_ACCESS_KEY
+            EOF
+            chmod 600 /opt/monitoring/.env
+
+      - name: Sync deploy files
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ env.VPS_HOST }}
+          username: ${{ env.VPS_USER }}
+          key: ${{ env.VPS_SSH_KEY }}
+          source: 'docker-compose.yml,vector.toml,deploy/Caddyfile,deploy/scripts/update-vps.sh'
+          target: /opt/monitoring
+          strip_components: 0
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ env.VPS_HOST }}
+          username: ${{ env.VPS_USER }}
+          key: ${{ env.VPS_SSH_KEY }}
+          script: |
+            chmod +x /opt/monitoring/deploy/scripts/update-vps.sh
+            sh /opt/monitoring/deploy/scripts/update-vps.sh
