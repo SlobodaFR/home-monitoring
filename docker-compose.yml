@@ -28,12 +28,16 @@ services:
     dns:
       - 1.1.1.1
       - 8.8.8.8
-    # s3.sloboda.cc has both A and AAAA records; the container has no IPv6
-    # route by default, and the aws-sdk-rust HTTP client doesn't fall back
+    # s3.sloboda.cc resolves to both A and AAAA (Cloudflare) records. The
+    # aws-sdk-rust HTTP client Vector's aws_s3 sink uses doesn't fall back
     # from an unreachable AAAA to the working A record the way curl/wget do
-    # - it hard-fails instantly. Disable IPv6 so it only ever tries IPv4.
-    sysctls:
-      - net.ipv6.conf.all.disable_ipv6=1
+    # (confirmed: disabling IPv6 via sysctl alone didn't fix it). Pinning
+    # the hostname to its Cloudflare IPv4 addresses in /etc/hosts removes
+    # AAAA from resolution entirely. If this starts failing again, Cloudflare
+    # may have rotated these IPs - re-check with `dig s3.sloboda.cc A`.
+    extra_hosts:
+      - 's3.sloboda.cc:104.21.75.185'
+      - 's3.sloboda.cc:172.67.180.30'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./vector.toml:/etc/vector/vector.toml:ro
