@@ -53,10 +53,12 @@ their data. Flushes every 5 minutes or 10 MB, whichever comes first, as
 gzip-compressed JSON lines. Object key layout:
 
 ```
-<bucket>/logs/<container_host>/<YYYY-MM-DD>/<uuid>.log.gz
+<bucket>/logs/<container_name>/<YYYY-MM-DD>/<uuid>.log.gz
 ```
 
-One prefix per host per day; multiple objects per day/host as batches flush.
+One prefix per container per day (Docker/compose container name, e.g.
+`home-monitoring-dozzle-1`); multiple objects per day/container as batches
+flush.
 
 ## Reading logs after the fact
 
@@ -64,15 +66,15 @@ With the [`mc`](https://min.io/docs/minio/linux/reference/minio-mc.html) client:
 
 ```bash
 mc alias set homelab "$MINIO_ENDPOINT" "$MINIO_ACCESS_KEY_ID" "$MINIO_SECRET_ACCESS_KEY"
-mc ls homelab/$MINIO_BUCKET/logs/<host>/2026-08-24/
-mc cat homelab/$MINIO_BUCKET/logs/<host>/2026-08-24/<uuid>.log.gz | gunzip | jq .
+mc ls homelab/$MINIO_BUCKET/logs/<container_name>/2026-08-24/
+mc cat homelab/$MINIO_BUCKET/logs/<container_name>/2026-08-24/<uuid>.log.gz | gunzip | jq .
 ```
 
 With the AWS CLI (works against any S3-compatible endpoint):
 
 ```bash
-aws --endpoint-url "$MINIO_ENDPOINT" s3 ls s3://$MINIO_BUCKET/logs/<host>/2026-08-24/
-aws --endpoint-url "$MINIO_ENDPOINT" s3 cp s3://$MINIO_BUCKET/logs/<host>/2026-08-24/<uuid>.log.gz - | gunzip | jq .
+aws --endpoint-url "$MINIO_ENDPOINT" s3 ls s3://$MINIO_BUCKET/logs/<container_name>/2026-08-24/
+aws --endpoint-url "$MINIO_ENDPOINT" s3 cp s3://$MINIO_BUCKET/logs/<container_name>/2026-08-24/<uuid>.log.gz - | gunzip | jq .
 ```
 
 ## Secrets

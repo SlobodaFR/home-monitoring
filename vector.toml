@@ -22,9 +22,15 @@ endpoint = "${MINIO_ENDPOINT}"
 force_path_style = true
 compression = "gzip"
 # Namespaced under logs/ so this doesn't collide with other apps' objects
-# in the shared bucket. One object per host per day:
-# <bucket>/logs/<host>/<YYYY-MM-DD>/<uuid>.log.gz
-key_prefix = "logs/{{ host }}/%F/"
+# in the shared bucket. One object per container per day:
+# <bucket>/logs/<container_name>/<YYYY-MM-DD>/<uuid>.log.gz
+#
+# NOT `host`: that field is the docker_logs source's own agent hostname
+# (i.e. this Vector container's short ID), the same for every event and
+# changing on every redeploy - it doesn't identify the source container at
+# all. `container_name` is the actual per-event field (container/service
+# name from `docker run --name` or the compose service name).
+key_prefix = "logs/{{ container_name }}/%F/"
 
 [sinks.minio.auth]
 access_key_id = "${MINIO_ACCESS_KEY_ID}"
