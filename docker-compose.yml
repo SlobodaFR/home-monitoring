@@ -9,6 +9,10 @@ services:
       # Enables Dozzle's built-in MCP server (Streamable HTTP) at /api/mcp.
       # See https://dozzle.dev/guide/mcp
       DOZZLE_ENABLE_MCP: 'true'
+      # Remote host running `dozzle agent` (docs: https://dozzle.dev/guide/agent).
+      # Value (host:port) comes from .env via docker compose's built-in
+      # ${VAR} substitution against the file next to this compose file.
+      DOZZLE_REMOTE_AGENT: ${MONITORING_UNPETITCOIN_REMOTE_AGENT}
     ports:
       # Internal only. Publicly reachable via the reverse proxy (see deploy/Caddyfile).
       - '127.0.0.1:3008:8080'

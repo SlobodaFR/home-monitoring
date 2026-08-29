@@ -22,6 +22,7 @@ jobs:
           VPS_SSH_KEY: op://TECH/thomassloboda_home_secrets/VPS_PRIVATE_KEY
           MONITORING_DOZZLE_USERNAME: op://TECH/thomassloboda_home_secrets/MONITORING_DOZZLE_USERNAME
           MONITORING_DOZZLE_PASSWORD: op://TECH/thomassloboda_home_secrets/MONITORING_DOZZLE_PASSWORD
+          MONITORING_UNPETITCOIN_REMOTE_AGENT: op://TECH/thomassloboda_home_secrets/MONITORING_UNPETITCOIN_REMOTE_AGENT
           # Shared MinIO creds/endpoint, same op:// fields home-auth/home-budget/home-health use.
           MINIO_ENDPOINT: op://TECH/thomassloboda_home_secrets/MINIO_ENDPOINT
           MINIO_BUCKET: op://TECH/thomassloboda_home_secrets/MINIO_BUCKET
@@ -55,12 +56,13 @@ jobs:
           host: ${{ env.VPS_HOST }}
           username: ${{ env.VPS_USER }}
           key: ${{ env.VPS_SSH_KEY }}
-          envs: MONITORING_DOZZLE_USERNAME,MONITORING_DOZZLE_PASSWORD,MINIO_ENDPOINT,MINIO_BUCKET,MINIO_REGION,MINIO_ACCESS_KEY_ID,MINIO_SECRET_ACCESS_KEY
+          envs: MONITORING_DOZZLE_USERNAME,MONITORING_DOZZLE_PASSWORD,MONITORING_UNPETITCOIN_REMOTE_AGENT,MINIO_ENDPOINT,MINIO_BUCKET,MINIO_REGION,MINIO_ACCESS_KEY_ID,MINIO_SECRET_ACCESS_KEY
           script: |
             mkdir -p /opt/monitoring
             cat > /opt/monitoring/.env <<EOF
             MONITORING_DOZZLE_USERNAME=$MONITORING_DOZZLE_USERNAME
             MONITORING_DOZZLE_PASSWORD=$MONITORING_DOZZLE_PASSWORD
+            MONITORING_UNPETITCOIN_REMOTE_AGENT=$MONITORING_UNPETITCOIN_REMOTE_AGENT
             MINIO_ENDPOINT=$MINIO_ENDPOINT
             MINIO_BUCKET=$MINIO_BUCKET
             MINIO_REGION=$MINIO_REGION

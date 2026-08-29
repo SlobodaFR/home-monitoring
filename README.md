@@ -19,6 +19,10 @@ Reverse proxy is **Caddy** (host-level systemd service, config dropped in
 https://dozzle.sloboda.fr — login with the `MONITORING_DOZZLE_USERNAME` /
 `MONITORING_DOZZLE_PASSWORD` credentials stored in 1Password.
 
+Also monitors the `unpetitcoin` host as a remote agent (`DOZZLE_REMOTE_AGENT`,
+docs: https://dozzle.dev/guide/agent) — requires `dozzle agent` running on
+that host, listening at the address stored in `MONITORING_UNPETITCOIN_REMOTE_AGENT`.
+
 ## Connecting Claude to Dozzle's MCP server
 
 Dozzle exposes an MCP server (Streamable HTTP) at `/api/mcp` when
@@ -99,6 +103,7 @@ It is never committed.
 |---|---|
 | `MONITORING_DOZZLE_USERNAME` | Login username for Dozzle simple-auth |
 | `MONITORING_DOZZLE_PASSWORD` | Login password (hashed into `users.yml` at deploy time) |
+| `MONITORING_UNPETITCOIN_REMOTE_AGENT` | `host:port` of the `dozzle agent` running on the `unpetitcoin` host — connects it as a monitored remote host (docs: https://dozzle.dev/guide/agent) |
 
 **Vector (reused, already exist)**
 
