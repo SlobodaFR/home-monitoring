@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
 
+# One deploy at a time on the VPS: queued, never cancelled mid-flight (convention harnais workflow-concurrency).
+concurrency:
+  group: deploy-vps
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
