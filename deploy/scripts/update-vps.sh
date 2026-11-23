@@ -16,7 +16,9 @@ docker run --rm amir20/dozzle generate "$MONITORING_DOZZLE_USERNAME" \
 chmod 600 "$DEPLOY_DIR/data/dozzle/users.yml"
 
 docker compose pull
-docker compose up -d --remove-orphans
+# Convention harnais deploy-wait-healthy : `docker compose up -d --wait` (repli : boucle docker inspect) ; un conteneur
+# qui n'est pas sain après 180 s fait échouer le déploiement (logs, sauvegarde et restauration affichées), sans retour arrière automatique.
+sh "$DEPLOY_DIR/deploy/scripts/compose-up-healthy.sh" -- --remove-orphans
 docker image prune -f
 
 if ! command -v caddy >/dev/null 2>&1; then
