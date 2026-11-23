@@ -21,6 +21,14 @@ services:
       # users.yml is generated at deploy time (see deploy/scripts/update-vps.sh)
       # from MONITORING_DOZZLE_USERNAME / MONITORING_DOZZLE_PASSWORD. Never committed.
       - ./data/dozzle:/data
+    # Convention harnais deploy-wait-healthy : le déploiement attend que Dozzle soit sain (commande intégrée de l'image,
+    # qui n'a pas de shell).
+    healthcheck:
+      test: ['CMD', '/dozzle', 'healthcheck']
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
 
   vector:
     image: timberio/vector:latest-alpine
@@ -40,3 +48,11 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./vector.toml:/etc/vector/vector.toml:ro
+    # Convention harnais deploy-wait-healthy : /health de l'API de Vector (activée sur 127.0.0.1 du conteneur dans
+    # vector.toml, jamais publiée).
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '-O', '/dev/null', 'http://127.0.0.1:8686/health']
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3

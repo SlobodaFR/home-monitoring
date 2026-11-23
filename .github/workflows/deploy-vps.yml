@@ -82,7 +82,7 @@ jobs:
           host: ${{ env.VPS_HOST }}
           username: ${{ env.VPS_USER }}
           key: ${{ env.VPS_SSH_KEY }}
-          source: 'docker-compose.yml,vector.toml,deploy/Caddyfile,deploy/scripts/update-vps.sh'
+          source: 'docker-compose.yml,vector.toml,deploy/Caddyfile,deploy/scripts/update-vps.sh,deploy/scripts/compose-up-healthy.sh'
           target: /opt/monitoring
           strip_components: 0
 

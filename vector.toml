@@ -2,8 +2,10 @@
 # Docs: https://vector.dev/docs/reference/configuration/sources/docker_logs/
 #       https://vector.dev/docs/reference/configuration/sinks/aws_s3/
 
+# API locale au conteneur (127.0.0.1:8686 par défaut, non publiée) : sert uniquement au healthcheck du compose
+# (convention harnais deploy-wait-healthy).
 [api]
-enabled = false
+enabled = true
 
 [sources.docker_logs]
 type = "docker_logs"
