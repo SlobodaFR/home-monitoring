@@ -1,0 +1,6 @@
+{
+  "conventions": "v1.8.1",
+  "exceptions": {
+    "image-retention": "images tierces à tag flottant uniquement (dozzle:latest, vector:latest-alpine) : aucun ancien tag à conserver, un pull laisse l'ancienne image pendante, retirée par le docker image prune du déploiement ; pas d'image du dépôt slobodafr à nettoyer"
+  }
+}
